@@ -31,6 +31,10 @@ env:
     - TOX_ENV=py35-backend_postgres-env_docker PYTHON_VERSION=3
     - TOX_ENV=py35-backend_postgres-env_kubernetes KUBERNETES_VERSION=v1.13.0 PYTHON_VERSION=3
 
+branches:
+  only:
+  - ci-test
+
 stages:
   - pre-test
   - test
