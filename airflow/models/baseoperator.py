@@ -34,6 +34,7 @@ from airflow import configuration, settings
 from airflow.exceptions import AirflowException
 from airflow.lineage import prepare_lineage, apply_lineage, DataSet
 from airflow.models.dag import DAG
+from airflow.models.pool import Pool
 from airflow.models.taskinstance import TaskInstance, clear_task_instances
 from airflow.models.xcom import XCOM_RETURN_KEY
 from airflow.ti_deps.deps.not_in_retry_period_dep import NotInRetryPeriodDep
@@ -258,7 +259,7 @@ class BaseOperator(LoggingMixin):
         priority_weight: int = 1,
         weight_rule: str = WeightRule.DOWNSTREAM,
         queue: str = configuration.conf.get('celery', 'default_queue'),
-        pool: Optional[str] = None,
+        pool: str = Pool.DEFAULT_POOL_NAME,
         sla: Optional[timedelta] = None,
         execution_timeout: Optional[timedelta] = None,
         on_failure_callback: Optional[Callable] = None,
@@ -579,7 +580,6 @@ class BaseOperator(LoggingMixin):
         """
         This hook is triggered right before self.execute() is called.
         """
-        pass
 
     def execute(self, context):
         """
@@ -597,7 +597,6 @@ class BaseOperator(LoggingMixin):
         It is passed the execution context and any results returned by the
         operator.
         """
-        pass
 
     def on_kill(self):
         """
@@ -606,7 +605,6 @@ class BaseOperator(LoggingMixin):
         module within an operator needs to be cleaned up or it will leave
         ghost processes behind.
         """
-        pass
 
     def __deepcopy__(self, memo):
         """
@@ -684,7 +682,6 @@ class BaseOperator(LoggingMixin):
         content of the file before the template is rendered,
         it should override this method to do so.
         """
-        pass
 
     def resolve_template_files(self):
         # Getting the content of files for template_field / template_ext
@@ -991,7 +988,6 @@ class BaseOperatorLink(metaclass=ABCMeta):
 
         :return: link name
         """
-        pass
 
     @abstractmethod
     def get_link(self, operator: BaseOperator, dttm: datetime) -> str:
@@ -1002,4 +998,3 @@ class BaseOperatorLink(metaclass=ABCMeta):
         :param dttm: datetime
         :return: link to external system
         """
-        pass

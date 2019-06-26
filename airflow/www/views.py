@@ -43,6 +43,7 @@ from flask_babel import lazy_gettext
 import lazy_object_proxy
 from pygments import highlight, lexers
 from pygments.formatters import HtmlFormatter
+import six
 from sqlalchemy import or_, desc, and_, union_all
 from wtforms import SelectField, validators
 
@@ -449,7 +450,8 @@ class Airflow(AirflowBaseView):
         return self.render_template(
             'airflow/dag_code.html', html_code=html_code, dag=dag, title=dag_id,
             root=request.args.get('root'),
-            demo_mode=conf.getboolean('webserver', 'demo_mode'))
+            demo_mode=conf.getboolean('webserver', 'demo_mode'),
+            wrapped=conf.getboolean('webserver', 'default_wrap'))
 
     @expose('/dag_details')
     @has_dag_access(can_dag_read=True)
@@ -644,7 +646,7 @@ class Airflow(AirflowBaseView):
             logs=logs, dag=dag_model, title="Log by attempts",
             dag_id=dag_id, task_id=task_id,
             execution_date=execution_date, form=form,
-            root=root)
+            root=root, wrapped=conf.getboolean('webserver', 'default_wrap'))
 
     @expose('/elasticsearch')
     @has_dag_access(can_dag_read=True)
@@ -922,13 +924,14 @@ class Airflow(AirflowBaseView):
         return redirect(origin)
 
     def _clear_dag_tis(self, dag, start_date, end_date, origin,
-                       recursive=False, confirmed=False):
+                       recursive=False, confirmed=False, only_failed=False):
         if confirmed:
             count = dag.clear(
                 start_date=start_date,
                 end_date=end_date,
                 include_subdags=recursive,
                 include_parentdag=recursive,
+                only_failed=only_failed,
             )
 
             flash("{0} task instances have been cleared".format(count))
@@ -939,6 +942,7 @@ class Airflow(AirflowBaseView):
             end_date=end_date,
             include_subdags=recursive,
             include_parentdag=recursive,
+            only_failed=only_failed,
             dry_run=True,
         )
         if not tis:
@@ -973,6 +977,7 @@ class Airflow(AirflowBaseView):
         future = request.form.get('future') == "true"
         past = request.form.get('past') == "true"
         recursive = request.form.get('recursive') == "true"
+        only_failed = request.form.get('only_failed') == "true"
 
         dag = dag.sub_dag(
             task_regex=r"^{0}$".format(task_id),
@@ -983,7 +988,7 @@ class Airflow(AirflowBaseView):
         start_date = execution_date if not past else None
 
         return self._clear_dag_tis(dag, start_date, end_date, origin,
-                                   recursive=recursive, confirmed=confirmed)
+                                   recursive=recursive, confirmed=confirmed, only_failed=only_failed)
 
     @expose('/dagrun_clear', methods=['POST'])
     @has_dag_access(can_dag_edit=True)
@@ -1167,10 +1172,10 @@ class Airflow(AirflowBaseView):
         execution_date = request.form.get('execution_date')
 
         confirmed = request.form.get('confirmed') == "true"
-        upstream = request.form.get('upstream') == "true"
-        downstream = request.form.get('downstream') == "true"
-        future = request.form.get('future') == "true"
-        past = request.form.get('past') == "true"
+        upstream = request.form.get('failed_upstream') == "true"
+        downstream = request.form.get('failed_downstream') == "true"
+        future = request.form.get('failed_future') == "true"
+        past = request.form.get('failed_past') == "true"
 
         return self._mark_task_instance_state(dag_id, task_id, origin, execution_date,
                                               confirmed, upstream, downstream,
@@ -1187,10 +1192,10 @@ class Airflow(AirflowBaseView):
         execution_date = request.form.get('execution_date')
 
         confirmed = request.form.get('confirmed') == "true"
-        upstream = request.form.get('upstream') == "true"
-        downstream = request.form.get('downstream') == "true"
-        future = request.form.get('future') == "true"
-        past = request.form.get('past') == "true"
+        upstream = request.form.get('success_upstream') == "true"
+        downstream = request.form.get('success_downstream') == "true"
+        future = request.form.get('success_future') == "true"
+        past = request.form.get('success_past') == "true"
 
         return self._mark_task_instance_state(dag_id, task_id, origin, execution_date,
                                               confirmed, upstream, downstream,
@@ -1937,8 +1942,8 @@ class ConfigurationView(AirflowBaseView):
         subtitle = conf.AIRFLOW_CONFIG
         # Don't show config when expose_config variable is False in airflow config
         if conf.getboolean("webserver", "expose_config"):
-            with open(conf.AIRFLOW_CONFIG, 'r') as f:
-                config = f.read()
+            with open(conf.AIRFLOW_CONFIG, 'r') as file:
+                config = file.read()
             table = [(section, key, value, source)
                      for section, parameters in conf.as_dict(True, True).items()
                      for key, (value, source) in parameters.items()]
@@ -2106,6 +2111,10 @@ class PoolModelView(AirflowModelView):
     @action('muldelete', 'Delete', 'Are you sure you want to delete selected records?',
             single=False)
     def action_muldelete(self, items):
+        if any(item.pool == models.Pool.DEFAULT_POOL_NAME for item in items):
+            flash("default_pool cannot be deleted", 'error')
+            self.update_redirect()
+            return redirect(self.get_redirect())
         self.datamodel.delete_all(items)
         self.update_redirect()
         return redirect(self.get_redirect())
@@ -2226,7 +2235,7 @@ class VariableModelView(AirflowModelView):
             suc_count = fail_count = 0
             for k, v in d.items():
                 try:
-                    models.Variable.set(k, v, serialize_json=isinstance(v, dict))
+                    models.Variable.set(k, v, serialize_json=not isinstance(v, six.string_types))
                 except Exception as e:
                     logging.info('Variable import failed: {}'.format(repr(e)))
                     fail_count += 1

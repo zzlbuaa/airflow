@@ -194,26 +194,26 @@ class TestKubernetesWorkerConfiguration(unittest.TestCase):
     @mock.patch.object(configuration, 'as_dict')
     def test_worker_configuration_auth_both_ssh_and_user(self, mock_config_as_dict, mock_conf_get):
         def get_conf(*args, **kwargs):
-            if(args[0] == 'core'):
+            if args[0] == 'core':
                 return '1'
-            if(args[0] == 'kubernetes'):
-                if(args[1] == 'git_ssh_known_hosts_configmap_name'):
+            if args[0] == 'kubernetes':
+                if args[1] == 'git_ssh_known_hosts_configmap_name':
                     return 'airflow-configmap'
-                if(args[1] == 'git_ssh_key_secret_name'):
+                if args[1] == 'git_ssh_key_secret_name':
                     return 'airflow-secrets'
-                if(args[1] == 'git_user'):
+                if args[1] == 'git_user':
                     return 'some-user'
-                if(args[1] == 'git_password'):
+                if args[1] == 'git_password':
                     return 'some-password'
-                if(args[1] == 'git_repo'):
+                if args[1] == 'git_repo':
                     return 'git@github.com:apache/airflow.git'
-                if(args[1] == 'git_branch'):
+                if args[1] == 'git_branch':
                     return 'master'
-                if(args[1] == 'git_dags_folder_mount_point'):
+                if args[1] == 'git_dags_folder_mount_point':
                     return '/usr/local/airflow/dags'
-                if(args[1] == 'delete_worker_pods'):
+                if args[1] == 'delete_worker_pods':
                     return True
-                if(args[1] == 'kube_client_request_args'):
+                if args[1] == 'kube_client_request_args':
                     return '{"_request_timeout" : [60,360] }'
                 return '1'
             return None
@@ -221,10 +221,10 @@ class TestKubernetesWorkerConfiguration(unittest.TestCase):
         mock_conf_get.side_effect = get_conf
         mock_config_as_dict.return_value = {'core': ''}
 
-        with self.assertRaisesRegexp(AirflowConfigException,
-                                     'either `git_user` and `git_password`.*'
-                                     'or `git_ssh_key_secret_name`.*'
-                                     'but not both$'):
+        with self.assertRaisesRegex(AirflowConfigException,
+                                    'either `git_user` and `git_password`.*'
+                                    'or `git_ssh_key_secret_name`.*'
+                                    'but not both$'):
             KubeConfig()
 
     def test_worker_with_subpaths(self):
@@ -395,6 +395,25 @@ class TestKubernetesWorkerConfiguration(unittest.TestCase):
         self.assertTrue({'name': 'GIT_SSH_KNOWN_HOSTS_FILE',
                         'value': '/etc/git-secret/known_hosts'} in env)
         self.assertFalse({'name': 'GIT_SYNC_SSH', 'value': 'true'} in env)
+
+    def test_make_pod_run_as_user_0(self):
+        # Tests the pod created with run-as-user 0 actually gets that in it's config
+        self.kube_config.worker_run_as_user = 0
+        self.kube_config.dags_volume_claim = None
+        self.kube_config.dags_volume_host = None
+        self.kube_config.dags_in_image = None
+        self.kube_config.worker_fs_group = None
+
+        worker_config = WorkerConfiguration(self.kube_config)
+        kube_executor_config = KubernetesExecutorConfig(annotations=[],
+                                                        volumes=[],
+                                                        volume_mounts=[])
+
+        pod = worker_config.make_pod("default", str(uuid.uuid4()), "test_pod_id", "test_dag_id",
+                                     "test_task_id", str(datetime.utcnow()), 1, "bash -c 'ls /'",
+                                     kube_executor_config)
+
+        self.assertEqual(0, pod.security_context['runAsUser'])
 
     def test_make_pod_git_sync_ssh_without_known_hosts(self):
         # Tests the pod created with git-sync SSH authentication option is correct without known hosts
@@ -633,10 +652,14 @@ class TestKubernetesWorkerConfiguration(unittest.TestCase):
 
     def test_get_labels(self):
         worker_config = WorkerConfiguration(self.kube_config)
-        labels = worker_config._get_labels({
+        labels = worker_config._get_labels({'my_kube_executor_label': 'kubernetes'}, {
             'dag_id': 'override_dag_id',
         })
-        self.assertEqual({'my_label': 'label_id', 'dag_id': 'override_dag_id'}, labels)
+        self.assertEqual({
+            'my_label': 'label_id',
+            'dag_id': 'override_dag_id',
+            'my_kube_executor_label': 'kubernetes'
+        }, labels)
 
 
 class TestKubernetesExecutor(unittest.TestCase):

@@ -33,7 +33,6 @@ class KubernetesRequestFactory(metaclass=ABCMeta):
 
         :param pod: The pod object
         """
-        pass
 
     @staticmethod
     def extract_image(pod, req):
@@ -204,6 +203,11 @@ class KubernetesRequestFactory(metaclass=ABCMeta):
     def extract_hostnetwork(pod, req):
         if pod.hostnetwork:
             req['spec']['hostNetwork'] = pod.hostnetwork
+
+    @staticmethod
+    def extract_dnspolicy(pod, req):
+        if pod.dnspolicy:
+            req['spec']['dnsPolicy'] = pod.dnspolicy
 
     @staticmethod
     def extract_image_pull_secrets(pod, req):

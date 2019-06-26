@@ -45,7 +45,7 @@ class KubernetesExecutorConfig:
     def __init__(self, image=None, image_pull_policy=None, request_memory=None,
                  request_cpu=None, limit_memory=None, limit_cpu=None,
                  gcp_service_account_key=None, node_selectors=None, affinity=None,
-                 annotations=None, volumes=None, volume_mounts=None, tolerations=None):
+                 annotations=None, volumes=None, volume_mounts=None, tolerations=None, labels={}):
         self.image = image
         self.image_pull_policy = image_pull_policy
         self.request_memory = request_memory
@@ -59,17 +59,18 @@ class KubernetesExecutorConfig:
         self.volumes = volumes
         self.volume_mounts = volume_mounts
         self.tolerations = tolerations
+        self.labels = labels
 
     def __repr__(self):
         return "{}(image={}, image_pull_policy={}, request_memory={}, request_cpu={}, " \
                "limit_memory={}, limit_cpu={}, gcp_service_account_key={}, " \
                "node_selectors={}, affinity={}, annotations={}, volumes={}, " \
-               "volume_mounts={}, tolerations={})" \
+               "volume_mounts={}, tolerations={}, labels={})" \
             .format(KubernetesExecutorConfig.__name__, self.image, self.image_pull_policy,
                     self.request_memory, self.request_cpu, self.limit_memory,
                     self.limit_cpu, self.gcp_service_account_key, self.node_selectors,
                     self.affinity, self.annotations, self.volumes, self.volume_mounts,
-                    self.tolerations)
+                    self.tolerations, self.labels)
 
     @staticmethod
     def from_dict(obj):
@@ -96,6 +97,7 @@ class KubernetesExecutorConfig:
             volumes=namespaced.get('volumes', []),
             volume_mounts=namespaced.get('volume_mounts', []),
             tolerations=namespaced.get('tolerations', None),
+            labels=namespaced.get('labels', {}),
         )
 
     def as_dict(self):
@@ -113,6 +115,7 @@ class KubernetesExecutorConfig:
             'volumes': self.volumes,
             'volume_mounts': self.volume_mounts,
             'tolerations': self.tolerations,
+            'labels': self.labels,
         }
 
 
@@ -157,8 +160,8 @@ class KubeConfig:
         self.dags_in_image = conf.getboolean(self.kubernetes_section, 'dags_in_image')
 
         # Run as user for pod security context
-        self.worker_run_as_user = conf.get(self.kubernetes_section, 'run_as_user')
-        self.worker_fs_group = conf.get(self.kubernetes_section, 'fs_group')
+        self.worker_run_as_user = self._get_security_context_val('run_as_user')
+        self.worker_fs_group = self._get_security_context_val('fs_group')
 
         # NOTE: `git_repo` and `git_branch` must be specified together as a pair
         # The http URL of the git repository to clone from
@@ -263,6 +266,15 @@ class KubeConfig:
         else:
             self.kube_client_request_args = {}
         self._validate()
+
+    # pod security context items should return integers
+    # and only return a blank string if contexts are not set.
+    def _get_security_context_val(self, scontext):
+        val = configuration.get(self.kubernetes_section, scontext)
+        if len(val) == 0:
+            return val
+        else:
+            return int(val)
 
     def _validate(self):
         # TODO: use XOR for dags_volume_claim and git_dags_folder_mount_point
@@ -795,7 +807,6 @@ class KubernetesExecutor(BaseExecutor, LoggingMixin):
                 self.running.pop(key)
             except KeyError:
                 self.log.debug('Could not find key: %s', str(key))
-                pass
         self.event_buffer[key] = state
 
     def end(self):

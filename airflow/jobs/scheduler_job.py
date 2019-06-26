@@ -437,7 +437,7 @@ class SchedulerJob(BaseJob):
         slas = (
             session
             .query(SlaMiss)
-            .filter(SlaMiss.notification_sent == False, SlaMiss.dag_id == dag.dag_id)  # noqa: E712
+            .filter(SlaMiss.notification_sent == False, SlaMiss.dag_id == dag.dag_id)  # noqa pylint: disable=singleton-comparison
             .all()
         )
 
@@ -576,7 +576,7 @@ class SchedulerJob(BaseJob):
                 session.query(func.max(DagRun.execution_date))
                 .filter_by(dag_id=dag.dag_id)
                 .filter(or_(
-                    DagRun.external_trigger == False,  # noqa: E712
+                    DagRun.external_trigger == False,  # noqa: E712 pylint: disable=singleton-comparison
                     # add % as a wildcard for the like query
                     DagRun.run_id.like(DagRun.ID_PREFIX + '%')
                 ))
@@ -848,17 +848,17 @@ class SchedulerJob(BaseJob):
                 DR,
                 and_(DR.dag_id == TI.dag_id, DR.execution_date == TI.execution_date)
             )
-            .filter(or_(DR.run_id == None,  # noqa: E711
+            .filter(or_(DR.run_id == None,  # noqa: E711 pylint: disable=singleton-comparison
                     not_(DR.run_id.like(BackfillJob.ID_PREFIX + '%'))))
             .outerjoin(DM, DM.dag_id == TI.dag_id)
-            .filter(or_(DM.dag_id == None,  # noqa: E711
+            .filter(or_(DM.dag_id == None,  # noqa: E711 pylint: disable=singleton-comparison
                     not_(DM.is_paused)))
         )
 
         # Additional filters on task instance state
         if None in states:
             ti_query = ti_query.filter(
-                or_(TI.state == None, TI.state.in_(states))  # noqa: E711
+                or_(TI.state == None, TI.state.in_(states))  # noqa: E711 pylint: disable=singleton-comparison
             )
         else:
             ti_query = ti_query.filter(TI.state.in_(states))
@@ -893,21 +893,14 @@ class SchedulerJob(BaseJob):
         # any open slots in the pool.
         for pool, task_instances in pool_to_task_instances.items():
             pool_name = pool
-            if not pool:
-                # Arbitrary:
-                # If queued outside of a pool, trigger no more than
-                # non_pooled_task_slot_count
-                open_slots = models.Pool.default_pool_open_slots()
-                pool_name = models.Pool.default_pool_name
+            if pool not in pools:
+                self.log.warning(
+                    "Tasks using non-existent pool '%s' will not be scheduled",
+                    pool
+                )
+                continue
             else:
-                if pool not in pools:
-                    self.log.warning(
-                        "Tasks using non-existent pool '%s' will not be scheduled",
-                        pool
-                    )
-                    open_slots = 0
-                else:
-                    open_slots = pools[pool].open_slots(session=session)
+                open_slots = pools[pool].open_slots(session=session)
 
             num_ready = len(task_instances)
             self.log.info(
@@ -976,6 +969,10 @@ class SchedulerJob(BaseJob):
 
             Stats.gauge('pool.starving_tasks.{pool_name}'.format(pool_name=pool_name),
                         num_starving_tasks)
+            Stats.gauge('pool.open_slots.{pool_name}'.format(pool_name=pool_name),
+                        pools[pool_name].open_slots())
+            Stats.gauge('pool.used_slots.{pool_name}'.format(pool_name=pool_name),
+                        pools[pool_name].occupied_slots())
 
         task_instance_str = "\n\t".join(
             [repr(x) for x in executable_tis])
@@ -1023,7 +1020,7 @@ class SchedulerJob(BaseJob):
 
         if None in acceptable_states:
             ti_query = ti_query.filter(
-                or_(TI.state == None, TI.state.in_(acceptable_states))  # noqa: E711
+                or_(TI.state == None, TI.state.in_(acceptable_states))  # noqa pylint: disable=singleton-comparison
             )
         else:
             ti_query = ti_query.filter(TI.state.in_(acceptable_states))

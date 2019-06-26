@@ -26,11 +26,11 @@ import shutil
 import sys
 import tempfile
 import unittest
-import urllib
-from datetime import timedelta
-from urllib.parse import quote_plus
-
 from unittest import mock
+import urllib
+from urllib.parse import quote_plus
+from datetime import timedelta
+
 import jinja2
 from flask import Markup, url_for
 from parameterized import parameterized
@@ -574,6 +574,7 @@ class TestAirflowBaseViews(TestBase):
             downstream="false",
             future="false",
             past="false",
+            only_failed="false",
         )
         resp = self.client.post("clear", data=form)
         self.check_content_in_response(['example_bash_operator', 'Wait a minute'], resp)
@@ -1690,7 +1691,6 @@ class TestTaskInstanceView(TestBase):
         # in to FAB) but simply that our UTC conversion was run - i.e. it
         # doesn't blow up!
         self.check_content_in_response('List Task Instance', resp)
-        pass
 
 
 class TestTriggerDag(TestBase):

@@ -130,6 +130,7 @@ Currently **officially** using Airflow:
 1. [Auth0](https://auth0.com) [[@sicarul](https://github.com/sicarul)]
 1. [Away](https://awaytravel.com) [[@trunsky](https://github.com/trunsky)]
 1. [Azri Solutions](http://www.azrisolutions.com/) [[@userimack](https://github.com/userimack)]
+1. [Bagelcode](https://site.bagelcode.com/)
 1. [BalanceHero](http://truebalance.io/) [[@swalloow](https://github.com/swalloow)]
 1. [Banco de Formaturas](https://www.bancodeformaturas.com.br) [[@guiligan](https://github.com/guiligan)]
 1. [BandwidthX](http://www.bandwidthx.com) [[@dineshdsharma](https://github.com/dineshdsharma)]
@@ -149,6 +150,7 @@ Currently **officially** using Airflow:
 1. [Boda Telecom Suite - CE](https://github.com/bodastage/bts-ce) [[@erssebaggala](https://github.com/erssebaggala), [@bodastage](https://github.com/bodastage)]
 1. [Bodastage Solutions](http://bodastage.com) [[@erssebaggala](https://github.com/erssebaggala), [@bodastage](https://github.com/bodastage)]
 1. [Bombora Inc](https://bombora.com/) [[@jeffkpayne](https://github.com/jeffkpayne), [@pakelley](https://github.com/pakelley), [@dNavalta](https://github.com/dNavalta), [@austynh](https://github.com/austynh), [@TheOriginalAlex](https://github.com/TheOriginalAlex)]
+1. [Bonial International GmbH](https://www.bonial.com/)
 1. [Bonnier Broadcasting](http://www.bonnierbroadcasting.com) [[@wileeam](https://github.com/wileeam)]
 1. [BounceX](http://www.bouncex.com) [[@JoshFerge](https://github.com/JoshFerge), [@hudsonrio](https://github.com/hudsonrio), [@ronniekritou](https://github.com/ronniekritou)]
 1. [Braintree](https://www.braintreepayments.com) [[@coopergillan](https://github.com/coopergillan), [@curiousjazz77](https://github.com/curiousjazz77), [@raymondberg](https://github.com/raymondberg)]
@@ -177,6 +179,7 @@ Currently **officially** using Airflow:
 1. [ContaAzul](https://www.contaazul.com) [[@bern4rdelli](https://github.com/bern4rdelli), [@renanleme](https://github.com/renanleme) & [@sabino](https://github.com/sabino)]
 1. [Cotap](https://github.com/cotap/) [[@maraca](https://github.com/maraca) & [@richardchew](https://github.com/richardchew)]
 1. [Craig@Work](https://www.craigatwork.com)
+1. [Crealytics](https://crealytics.com)
 1. [Credit Karma](https://www.creditkarma.com/) [[@preete-dixit-ck](https://github.com/preete-dixit-ck) & [@harish-gaggar-ck](https://github.com/harish-gaggar-ck) & [@greg-finley-ck](https://github.com/greg-finley-ck)]
 1. [Creditas](https://www.creditas.com.br) [[@dcassiano](https://github.com/dcassiano)]
 1. [CreditCards.com](https://www.creditcards.com/)[[@vmAggies](https://github.com/vmAggies) &  [@jay-wallaby](https://github.com/jay-wallaby)]
@@ -214,6 +217,7 @@ Currently **officially** using Airflow:
 1. [Global Fashion Group](http://global-fashion-group.com) [[@GFG](https://github.com/GFG)]
 1. [GoDataDriven](https://godatadriven.com/) [[@BasPH](https://github.com/basph), [@danielvdende](https://github.com/danielvdende), [@ffinfo](https://github.com/ffinfo), [@Fokko](https://github.com/Fokko), [@gglanzani](https://github.com/gglanzani), [@hgrif](https://github.com/hgrif), [@jrderuiter](https://github.com/jrderuiter), [@NielsZeilemaker](https://github.com/NielsZeilemaker)]
 1. [GovTech GDS](https://gds-gov.tech) [[@chrissng](https://github.com/chrissng) & [@datagovsg](https://github.com/datagovsg)]
+1. [Grab](https://www.grab.com/sg/) [[@calvintran](https://github.com/canhtran)]
 1. [Gradeup](https://gradeup.co) [[@gradeup](https://github.com/gradeup)]
 1. [Grand Rounds](https://www.grandrounds.com/) [[@richddr](https://github.com/richddr), [@timz1290](https://github.com/timz1290), [@wenever](https://github.com/@wenever), & [@runongirlrunon](https://github.com/runongirlrunon)]
 1. [Groupalia](http://es.groupalia.com) [[@jesusfcr](https://github.com/jesusfcr)]
@@ -313,6 +317,7 @@ Currently **officially** using Airflow:
 1. [Reverb](https://reverb.com)[[@reverbdotcom](https://github.com/reverbdotcom)]
 1. [Robinhood](https://robinhood.com) [[@vineet-rh](https://github.com/vineet-rh)]
 1. [Scaleway](https://scaleway.com) [[@kdeldycke](https://github.com/kdeldycke)]
+1. [Seasoned](https://www.seasoned.co/) [[@joshuacano](https://github.com/joshuacano)] & [[@mmyers](https://github.com/mmyers5)] & [[@tjward](https://github.com/tjward)]
 1. [Secret Escapes](https://www.secretescapes.com) [[@secretescapes](https://github.com/secretescapes)]
 1. [Semantics3](https://www.semantics3.com) [[@abishekk92](https://github.com/abishekk92)]
 1. [Sense360](https://github.com/Sense360) [[@kamilmroczek](https://github.com/KamilMroczek)]
@@ -378,6 +383,7 @@ Currently **officially** using Airflow:
 1. [Zendesk](https://www.github.com/zendesk)
 1. [Zenly](https://zen.ly) [[@cerisier](https://github.com/cerisier) & [@jbdalido](https://github.com/jbdalido)]
 1. [Zymergen](https://www.zymergen.com/)
+1. [Zynga](https://www.zynga.com)
 
 ## Who Maintains Apache Airflow?
 
